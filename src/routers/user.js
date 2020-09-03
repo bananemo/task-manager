@@ -1,6 +1,6 @@
 const express = require('express')
 const User = require('../models/user')
-const router = new express.Router() // Declare a new Router object (會在 index.js 被 import)
+const router = new express.Router() // Declare a new Router object (會在 src/index.js 被 import)
 
 router.post('/users', async (req, res) => {
     const user = new User(req.body)
@@ -10,6 +10,15 @@ router.post('/users', async (req, res) => {
         res.status(201).send(user)  // 先設置 response status, 再 send response msg
     } catch (e) {
         res.status(400).send(e)
+    }
+})
+
+router.post('/users/login', async (req, res) => {
+    try {
+        const user = await User.findByCredentials(req.body.email, req.body.password)
+        res.send(user)
+    } catch (e) {
+        res.status(400).send()
     }
 })
 
