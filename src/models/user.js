@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const validator = require('validator')
 const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -39,10 +40,29 @@ const userSchema = new mongoose.Schema({
                 throw new Error('Invalid password')
             }
         }
-    }
+    },
+    tokens: [{ // 有可能一個使用者從多個裝置登入，所以會有很多個 token
+        token: {
+            type: String,
+            required: true
+        }
+    }]
 })
 
-userSchema.statics.findByCredentials = async (email, password) => { // we can define our own function by setting 'userSchema.statics'
+
+userSchema.methods.generateAuthToken = async function () { // (1) schema.method 能被 instance access; (2) schema.static 能被 model access (想成 object)
+    const user = this
+    const token = jwt.sign({ _id: user._id.toString() }, 'thisismynewcourse')// Create a token. 第一個變數放你想要在 token 存的資料，第二個變數放 secret (你加密的東西)，第三個變數可以設定多久過期
+    
+    user.tokens = user.tokens.concat({ token })
+    await user.save()
+    
+    return token
+    //jwt.verify(token, '') // Verify token with secret
+}
+
+
+userSchema.statics.findByCredentials = async (email, password) => { // we can define our own function by setting 'userSchema.statics'; static method 能被 model access
     const user = await User.findOne({ email })
 
     if (!user) {
