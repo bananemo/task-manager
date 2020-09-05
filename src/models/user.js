@@ -49,6 +49,13 @@ const userSchema = new mongoose.Schema({
     }]
 })
 
+// 定義和其他 Schema virtual 的 relationship。這邊會在 user 上面建立一個虛擬的 property 叫做 task，但是不會真的存在 user schema 內。這樣就不用額外存 user task
+userSchema.virtual('tasks', {
+    ref: 'Task',
+    localField: '_id',
+    foreignField: 'owner'
+})
+
 userSchema.methods.toJSON = function () {
     const user = this
     const userObject = user.toObject()
