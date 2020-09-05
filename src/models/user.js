@@ -49,6 +49,15 @@ const userSchema = new mongoose.Schema({
     }]
 })
 
+userSchema.methods.toJSON = function () {
+    const user = this
+    const userObject = user.toObject()
+
+    delete userObject.password
+    delete userObject.tokens
+
+    return userObject
+}
 
 userSchema.methods.generateAuthToken = async function () { // (1) schema.method 能被 instance access; (2) schema.static 能被 model access (想成 object)
     const user = this
