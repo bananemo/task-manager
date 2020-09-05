@@ -11,6 +11,7 @@ const auth = async (req, res, next) => { // request 會先進到這邊，做一�
             throw new Error()
         }
 
+        req.token = token
         req.user = user // 把找到的 user 存在 request 裡面，這樣 router handler 就能 access 到找到的 user
         next()
     } catch (e) {

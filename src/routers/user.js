@@ -25,6 +25,31 @@ router.post('/users/login', async (req, res) => {
     }
 })
 
+router.post('/users/logout', auth, async (req, res) => {
+    try {
+        // 有可能一個使用者從多個裝置登入，所以會有很多個 token。因此這邊找到現在登入的 token 之後清掉(用filter)，但其他會保留
+        req.user.tokens = req.user.tokens.filter((token) => {
+            return token.token !== req.token
+        })
+        await req.user.save()
+
+        res.send()
+    } catch (e) {
+        res.status(500).send()
+    }
+})
+
+router.post('/users/logoutAll', auth, async (req, res) => {
+    try {
+        req.user.tokens = []
+        await req.user.save()
+        res.send()
+    } catch (e) {
+        res.status(500).send()
+    }
+
+})
+
 router.get('/users/me', auth, async (req, res) => {
     res.send(req.user)
 })
