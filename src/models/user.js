@@ -52,7 +52,7 @@ const userSchema = new mongoose.Schema({
 
 userSchema.methods.generateAuthToken = async function () { // (1) schema.method 能被 instance access; (2) schema.static 能被 model access (想成 object)
     const user = this
-    const token = jwt.sign({ _id: user._id.toString() }, 'thisismynewcourse')// Create a token. 第一個變數放你想要在 token 存的資料，第二個變數放 secret (你加密的東西)，第三個變數可以設定多久過期
+    const token = jwt.sign({ _id: user._id.toString() }, 'thisIsMyTokenSecret')// Create a token. 第一個變數放你想要在 token 存的資料，第二個變數放 secret (你加密的東西)，第三個變數可以設定多久過期
     
     user.tokens = user.tokens.concat({ token })
     await user.save()
