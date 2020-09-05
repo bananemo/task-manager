@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const validator = require('validator')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const Task = require('./task')
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -56,6 +57,9 @@ userSchema.virtual('tasks', {
     foreignField: 'owner'
 })
 
+
+/* methods */
+
 userSchema.methods.toJSON = function () {
     const user = this
     const userObject = user.toObject()
@@ -78,6 +82,8 @@ userSchema.methods.generateAuthToken = async function () { // (1) schema.method 
 }
 
 
+/* static methods (model methods) */
+
 userSchema.statics.findByCredentials = async (email, password) => { // we can define our own function by setting 'userSchema.statics'; static method 能被 model access
     const user = await User.findOne({ email })
 
@@ -94,6 +100,10 @@ userSchema.statics.findByCredentials = async (email, password) => { // we can de
     return user
 }
 
+
+
+/* middleware */
+
 // Hash the plain text text password before saving 
 userSchema.pre('save', async function (next) {
     const user = this
@@ -104,6 +114,14 @@ userSchema.pre('save', async function (next) {
 
     next()
 })
+
+// Delete user tasks when user is removed
+userSchema.pre('remove', async function (next) {
+    const user = this
+    await Task.deleteMany({ 'owner': user._id })
+    next()
+})
+
 
 const User = mongoose.model('User', userSchema)
 
