@@ -1,4 +1,5 @@
 const express = require('express')
+const multer = require('multer')
 const User = require('../models/user')
 const auth = require('../middleware/auth')
 const router = new express.Router() // Declare a new Router object (會在 src/index.js 被 import)
@@ -80,6 +81,26 @@ router.delete('/users/me', auth, async (req, res) => {
     } catch (e) {
         res.status(500).send()
     }
+})
+
+const upload = multer({
+    dest: 'avatars', // the destination we want to store the file,
+    limits: {
+        fileSize: 1000000 // 1MB
+    },
+    fileFilter(req, file, cb) { // req: request, file: 上傳的file的一些資訊, cb: 完成fileFilter 
+        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+            return cb(new Error('Please upload an image'))
+        }
+
+        cb(undefined, true) // 如果成功，執行這行
+    }
+})
+
+router.post('/users/me/avatar', upload.single('avatar'), (req, res) => {
+    res.send()
+}, (error, req, res, next) => { // Handling customized express error
+    res.status(400).send({ error: error.message })
 })
 
 module.exports = router
