@@ -15,6 +15,8 @@ const taskSchema = new mongoose.Schema({
         required: true,
         ref: 'User' // 能定義 Task 和 User 的 relationship
     }
+}, {
+    timestamps: true,
 })
 
 const Task = mongoose.model('Task', taskSchema)
