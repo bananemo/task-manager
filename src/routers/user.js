@@ -1,5 +1,6 @@
 const express = require('express')
 const multer = require('multer')
+const sharp = require('sharp')
 const User = require('../models/user')
 const auth = require('../middleware/auth')
 const router = new express.Router() // Declare a new Router object (會在 src/index.js 被 import)
@@ -97,7 +98,8 @@ const upload = multer({
 })
 
 router.post('/users/me/avatar', auth, upload.single('avatar'), async (req, res) => {
-    req.user.avatar = req.file.buffer
+    const buffer = await sharp(req.file.buffer).resize({ width: 250, height: 250 }).png().toBuffer()
+    req.user.avatar = buffer
     await req.user.save()
     res.send()
 }, (error, req, res, next) => { // Handling customized express error
@@ -118,7 +120,7 @@ router.get('/users/:id/avatar', async (req, res) => {
             throw new Error()
         }
 
-        res.set('Content-Type', 'image/jpg') // Set response header: response type
+        res.set('Content-Type', 'image/png') // Set response header: response type
         res.send(user.avatar)
     } catch (e) {
         res.status(404).send()
