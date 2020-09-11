@@ -3,6 +3,7 @@ const multer = require('multer')
 const sharp = require('sharp')
 const User = require('../models/user')
 const auth = require('../middleware/auth')
+const { sendWelcomeEmail, sendCancellationEmail } = require('../emails/account')
 const router = new express.Router() // Declare a new Router object (會在 src/index.js 被 import)
 
 router.post('/users', async (req, res) => {
@@ -10,6 +11,7 @@ router.post('/users', async (req, res) => {
 
     try {
         await user.save()
+        sendWelcomeEmail(user.email, user.name) // 這雖然是 async ，但是因為他回傳的值不會影響其他，所以不用 await
         const token = await user.generateAuthToken()
         res.status(201).send({ user, token })  // 先設置 response status, 再 send response msg
     } catch (e) {
@@ -78,6 +80,7 @@ router.patch('/users/me', auth, async (req, res) => {
 router.delete('/users/me', auth, async (req, res) => {
     try {
         await req.user.remove()
+        sendCancellationEmail(req.user.email, req.user.name)
         res.send(req.user)
     } catch (e) {
         res.status(500).send()
