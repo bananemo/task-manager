@@ -1,5 +1,5 @@
 const express = require('express')
-const Task = require('../models/task')
+const Task = require('../../models/task')
 const auth = require('../middleware/auth')
 const router = new express.Router()
 
@@ -53,7 +53,7 @@ router.get('/tasks/:id', auth, async (req, res) => {
     const _id = req.params.id
     
     try {
-        const task = await Task.findOne({ _id, owner: req.user._id })
+        const task = await Task.findOne({ _id, owner: req.user._id }) // 自己 filter 出被認證的 user 的 id
 
         if (!task) {
             return req.status(404).send()

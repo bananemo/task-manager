@@ -1,9 +1,9 @@
 const express = require('express')
 const multer = require('multer')
 const sharp = require('sharp')
-const User = require('../models/user')
+const User = require('../../models/user')
 const auth = require('../middleware/auth')
-const { sendWelcomeEmail, sendCancellationEmail } = require('../emails/account')
+const { sendWelcomeEmail, sendCancellationEmail } = require('../../emails/account')
 const router = new express.Router() // Declare a new Router object (會在 src/index.js 被 import)
 
 router.post('/users', async (req, res) => {
