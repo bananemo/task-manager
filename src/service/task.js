@@ -1,12 +1,16 @@
+const Container = require('typedi').Container
+// const Service = require('typedi').Service
+// const Inject = require('typedi').Inject
 const Task = require('../models/task')
 
 const TaskService = class {
     constructor() {
-        this.taskModel = Task
+        this.taskModel = Container.get('taskModel')
+        // this.taskModel = Task
     }
 
     async create(taskInfo, userId) {
-        const task = new Task({
+        const task = new this.taskModel({
             ...taskInfo,
             owner: userId
         })

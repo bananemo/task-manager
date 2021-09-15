@@ -1,3 +1,5 @@
+require('reflect-metadata'); // We need this in order to use @Decorators
+
 const express = require('express')
 const loaders = require('./loaders')
 
