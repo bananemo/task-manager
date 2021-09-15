@@ -1,108 +1,72 @@
 const express = require('express')
-const Task = require('../../models/task')
 const auth = require('../middleware/auth')
 const router = new express.Router()
+const TaskService = require('../../service/task')
 
 module.exports = (app) => {
     app.use("/tasks", router);
 
-    router.post('', auth, async (req, res) => {
-        const task = new Task({
-            ...req.body,
-            owner: req.user._id
-        })
+    router.post('', auth, async (req, res, next) => {
     
         try {
-            await task.save()
-            res.status(201).send(task)
+            const taskService = new TaskService()
+            const message = await taskService.create(req.body, req.user._id)
+
+            res.status(201).json({ message })
         } catch (e) {
-            res.status(400).send(e)
+            console.log('🔥 error: %o',  e );
+            return next(e);
         }
     })
     
     // GET /tasks?completed=true
     // GET /tasks?limit=10&skip=20
     // GET /tasks?sortBy=createdAt:desc
-    router.get('', auth, async (req, res) => {
-        const match = {}
-        const sort = {}
-    
-        if (req.query.completed) {
-            match.completed = (req.query.completed === 'true')
-        }
-    
-        if (req.query.sortBy) {
-            const parts = req.query.sortBy.split(':')
-            sort[parts[0]] = (parts[1] === 'desc' ? -1 : 1) // 1: ascending, -1: descending
-        }
-    
+    router.get('', auth, async (req, res, next) => {
         try {
-            await req.user.populate({
-                path: 'tasks',
-                match,
-                options: {
-                    limit: parseInt(req.query.limit), // If limit is not provided, 這邊的會被忽略
-                    skip: parseInt(req.query.skip),
-                    sort
-                }
-            }).execPopulate()
-            res.send(req.user.tasks)
+            const taskService = new TaskService()
+            const message = await taskService.getAll(req.query, req.user)
+
+            res.status(200).json({ message })
         } catch (e) {
-            res.status(500).send()
+            console.log('🔥 error: %o',  e );
+            return next(e);
         }
     })
     
-    router.get('/:id', auth, async (req, res) => {
-        const _id = req.params.id
-        
-        try {
-            const task = await Task.findOne({ _id, owner: req.user._id }) // 自己 filter 出被認證的 user 的 id
-    
-            if (!task) {
-                return req.status(404).send()
-            }
-        
-            res.send(task)
+    router.get('/:id', auth, async (req, res, next) => {
+        try {    
+            const taskService = new TaskService()
+            const message = await taskService.get(req.params.id, req.user._id)
+
+            return res.status(200).json({ message });
         } catch (e) {
-            res.status(500).send()
+            console.log('🔥 error: %o',  e );
+            return next(e);
         }
     })
     
-    router.patch('/:id', auth, async (req, res) => {
-        const updates = Object.keys(req.body)
-        const allowUpdates = ['description', 'completed']
-        const isValidOperation = updates.every((update) => allowUpdates.includes(update))
-    
-        if (!isValidOperation) {
-            return res.status(400).send({ error: 'Invalid updates!' })
-        }
-        
+    router.patch('/:id', auth, async (req, res, next) => {
         try {
-            const task = await Task.findOne({ _id: req.params.id, owner: req.user._id })
-            if (!task) {
-                return res.status(404).send()
-            }
-            
-            updates.forEach((update) => task[update] = req.body[update])
-            await task.save()
-    
-            res.send(task)
+            const taskService = new TaskService()
+            const message = await taskService.update(req.body, req.params.id, req.user._id)
+
+            return res.status(200).json({ message });
         } catch (e) {
-            res.status(400).send()
+            console.log('🔥 error: %o',  e );
+            return next(e);
         }
     })
     
-    router.delete('/:id', auth, async (req, res) => {
+    router.delete('/:id', auth, async (req, res, next) => {
         try {
-            const task = await Task.findByIdAndDelete({ _id: req.params.id, owner: req.user._id})
-            
-            if (!task) {
-                return res.status(404).send()
-            }
-    
-            res.send(task)
+            const taskService = new TaskService()
+            const message = await taskService.delete(req.params.id, req.user._id)
+
+            return res.status(200).json({ message });
         } catch (e) {
-            res.status(500).send()
+            console.log('🔥 error: %o',  e );
+            return next(e);
         }
     })
 }
